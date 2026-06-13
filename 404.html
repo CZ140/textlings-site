@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Textlings — message not delivered</title>
+<meta name="description" content="This page couldn't be found.">
+<meta name="color-scheme" content="dark">
+<style>
+  :root{
+    --bg:        oklch(0.188 0.013 318);
+    --bg-deep:   oklch(0.150 0.013 318);
+    --surface:   oklch(0.232 0.015 318);
+    --surface-2: oklch(0.282 0.016 318);
+    --surface-3: oklch(0.330 0.017 318);
+    --text:      oklch(0.97 0.004 320);
+    --muted:     oklch(0.74 0.012 320);
+    --faint:     oklch(0.58 0.012 320);
+    --line-soft: oklch(0.27 0.014 318);
+    --accent:    oklch(0.80 0.115 322);
+    --accent-hi: oklch(0.86 0.10 322);
+    --accent-2:  oklch(0.80 0.095 268);
+    --bubble-you-1: oklch(0.585 0.155 322);
+    --bubble-you-2: oklch(0.640 0.150 332);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; min-height:100svh; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:17px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column;
+  }
+  a{ color:inherit; text-decoration:none; }
+  :focus-visible{ outline:2px solid var(--accent-hi); outline-offset:3px; border-radius:5px; }
+  .wrap{ width:100%; max-width:1180px; margin:0 auto; padding:0 clamp(20px,5vw,40px); }
+
+  header.nav{ border-bottom:1px solid var(--line-soft); }
+  .nav-inner{ display:flex; align-items:center; height:64px; }
+  .brand{ display:inline-flex; align-items:center; gap:9px; font-weight:680; font-size:18px; letter-spacing:-.02em; }
+  .brand .dot{
+    width:10px; height:10px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in oklch, var(--accent) 20%, transparent);
+  }
+
+  main{ flex:1; display:grid; place-items:center; padding:clamp(48px,9vw,120px) 0; }
+  .panel{ text-align:center; max-width:30rem; }
+
+  .thread{ display:flex; flex-direction:column; gap:7px; align-items:stretch; margin:0 auto 34px; max-width:330px; }
+  .msg{ max-width:84%; padding:9px 13px; border-radius:19px; font-size:15px; line-height:1.4; }
+  .msg.luna{ align-self:flex-start; background:var(--surface-2); color:var(--text); border-bottom-left-radius:7px; }
+  .msg.you{
+    align-self:flex-end; color:#fff;
+    background:linear-gradient(160deg, var(--bubble-you-1), var(--bubble-you-2));
+    border-bottom-right-radius:7px;
+  }
+  .undeliv{
+    align-self:flex-end; display:flex; align-items:center; gap:7px;
+    font-family:var(--mono); font-size:11.5px; color:oklch(0.70 0.16 25); letter-spacing:.01em;
+    margin:1px 2px 0;
+  }
+  .undeliv .x{
+    width:15px; height:15px; border-radius:50%; flex:none;
+    border:1.5px solid oklch(0.70 0.16 25); position:relative;
+  }
+  .undeliv .x::before,.undeliv .x::after{
+    content:""; position:absolute; inset:0; margin:auto; width:7px; height:1.5px;
+    background:oklch(0.70 0.16 25); border-radius:1px;
+  }
+  .undeliv .x::before{ transform:rotate(45deg); }
+  .undeliv .x::after{ transform:rotate(-45deg); }
+
+  .code{ font-family:var(--mono); font-size:13px; color:var(--accent-hi); letter-spacing:.06em; text-transform:uppercase; }
+  h1{ font-size:clamp(28px,4vw,40px); letter-spacing:-.03em; line-height:1.05; margin:12px 0 14px; font-weight:680; }
+  p.lede{ color:var(--muted); margin:0 0 26px; }
+  .btn{
+    font:inherit; font-weight:600; font-size:16px; display:inline-flex; align-items:center; gap:10px;
+    padding:13px 22px; border-radius:13px; background:var(--accent); color:var(--bg-deep);
+  }
+  .btn:hover{ background:var(--accent-hi); }
+
+  footer{ border-top:1px solid var(--line-soft); padding:26px 0; background:var(--bg-deep); }
+  .foot-bottom{
+    display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:center;
+    font-family:var(--mono); font-size:12.5px; color:var(--faint);
+  }
+  .foot-bottom a{ color:var(--muted); }
+  .foot-bottom a:hover{ color:var(--text); }
+  .foot-bottom .no-track{ color:var(--accent-hi); }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="/" aria-label="Textlings home"><span class="dot"></span>textlings</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap panel">
+    <div class="thread" aria-hidden="true">
+      <div class="msg you">where's this page??</div>
+      <div class="undeliv"><span class="x"></span>Not Delivered</div>
+      <div class="msg luna">yeah that one's not here. wrong number maybe</div>
+      <div class="msg luna">try the front door, it's unlocked</div>
+    </div>
+    <p class="code">404 — message not delivered</p>
+    <h1>This page couldn't be found.</h1>
+    <p class="lede">The link's broken or the page moved. No harm done — let's get you back.</p>
+    <a class="btn" href="/">Back to textlings</a>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap foot-bottom">
+    <span>Licensed <a href="https://github.com/CZ140/textlings">AGPL-3.0</a> · free forever ·
+      <a href="https://github.com/sponsors/CZ140">support development ♥</a></span>
+    <span class="no-track">no trackers on this site, ever</span>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,55 +1,1123 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Textlings — characters who text you back</title>
-<meta name="description" content="An AI character texting app that runs entirely on your own computer or Raspberry Pi. Characters with memory, lives, and the nerve to text first. Free and open source.">
+<title>Textlings — the contacts who text you first</title>
+<meta name="description" content="A messaging app where every contact is an AI character with their own hours, moods, and memory. They text you first. They remember last month. And it all runs on your own machine — no cloud, no account, no telemetry. Free and open source.">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="Textlings — the contacts who text you first">
+<meta property="og:description" content="AI characters with hours, moods, and memory, running entirely on your own machine. They start the conversation. They remember. Free & open source.">
+<meta property="og:type" content="website">
 <style>
-  :root {
-    --bg: oklch(0.188 0.013 318);
-    --bg-2: oklch(0.232 0.015 318);
-    --text: oklch(0.97 0.004 320);
-    --text-2: oklch(0.82 0.008 320);
-    --accent: oklch(0.80 0.115 322);
+  :root{
+    --bg:        oklch(0.188 0.013 318);
+    --bg-deep:   oklch(0.150 0.013 318);
+    --surface:   oklch(0.232 0.015 318);
+    --surface-2: oklch(0.282 0.016 318);
+    --surface-3: oklch(0.330 0.017 318);
+    --text:      oklch(0.97 0.004 320);
+    --muted:     oklch(0.74 0.012 320);
+    --faint:     oklch(0.58 0.012 320);
+    --line:      oklch(0.32 0.014 318);
+    --line-soft: oklch(0.27 0.014 318);
+    --accent:    oklch(0.80 0.115 322);
+    --accent-hi: oklch(0.86 0.10 322);
+    --accent-2:  oklch(0.80 0.095 268);   /* periwinkle — night / initiative */
+    --bubble-you-1: oklch(0.585 0.155 322);
+    --bubble-you-2: oklch(0.640 0.150 332);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    --maxw: 1180px;
   }
-  * { box-sizing: border-box; margin: 0; }
-  body {
-    background: var(--bg); color: var(--text);
-    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
-    min-height: 100svh; display: grid; place-items: center; padding: 24px;
+
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:clip;
   }
-  main { max-width: 560px; text-align: center; }
-  .bubble {
-    display: inline-block; background: var(--bg-2);
-    padding: 14px 20px; border-radius: 22px; margin-bottom: 28px;
-    color: var(--text-2); font-size: 15px;
+  a{ color:inherit; text-decoration:none; }
+  p{ text-wrap:pretty; }
+  :focus-visible{ outline:2px solid var(--accent-hi); outline-offset:3px; border-radius:5px; }
+
+  .skip{
+    position:absolute; left:-9999px; top:0; z-index:100;
+    background:var(--accent); color:var(--bg-deep); padding:12px 18px; border-radius:0 0 12px 0;
+    font-weight:650;
   }
-  h1 { font-size: 40px; letter-spacing: -0.02em; margin-bottom: 12px; }
-  h1 span { color: var(--accent); }
-  p { color: var(--text-2); margin-bottom: 28px; }
-  a.btn {
-    display: inline-block; background: var(--accent); color: var(--bg);
-    text-decoration: none; font-weight: 600; padding: 12px 22px;
-    border-radius: 999px; margin: 0 6px 10px;
+  .skip:focus{ left:0; }
+
+  .wrap{ width:100%; max-width:var(--maxw); margin:0 auto; padding:0 clamp(20px,5vw,40px); }
+
+  /* ---------- shared bits ---------- */
+  .kicker{
+    font-family:var(--mono); font-size:13px; letter-spacing:.04em;
+    color:var(--accent-hi); text-transform:lowercase;
+    display:inline-flex; align-items:center; gap:10px;
   }
-  a.ghost { background: transparent; color: var(--text); border: 1px solid var(--text-2); }
-  footer { margin-top: 48px; font-size: 13px; color: var(--text-2); }
-  footer a { color: var(--text-2); }
+  .kicker::before{
+    content:""; width:7px; height:7px; border-radius:50%;
+    background:var(--accent); box-shadow:0 0 0 4px color-mix(in oklch, var(--accent) 22%, transparent);
+  }
+  .lede{ color:var(--muted); font-size:19px; line-height:1.55; }
+  .lede b{ color:var(--text); font-weight:600; }
+  .meta-line{ font-family:var(--mono); font-size:13px; color:var(--faint); letter-spacing:.01em; }
+  .meta-line b{ color:var(--muted); font-weight:500; }
+
+  .btn{
+    font:inherit; font-weight:600; font-size:16px;
+    display:inline-flex; align-items:center; gap:11px;
+    padding:14px 22px; border-radius:13px; border:1px solid transparent;
+    cursor:pointer; transition:transform .12s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--accent); color:var(--bg-deep); }
+  .btn-primary:hover{ background:var(--accent-hi); }
+  .btn-ghost{ background:transparent; color:var(--text); border-color:var(--line); }
+  .btn-ghost:hover{ border-color:var(--surface-3); background:var(--surface); }
+  .btn .win{ width:17px; height:17px; flex:none; }
+  .btn .win svg{ display:block; width:100%; height:100%; fill:currentColor; }
+
+  .eyebrow{
+    font-family:var(--mono); font-size:13px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--accent-hi);
+  }
+  .section-title{
+    font-size:clamp(30px,4.4vw,52px); line-height:1.02; letter-spacing:-.035em; font-weight:680;
+    margin:14px 0 0;
+  }
+  .section-title .dim{ color:var(--muted); }
+
+  /* =========================================================
+     HEADER
+     ========================================================= */
+  header.nav{
+    position:sticky; top:0; z-index:40;
+    background:color-mix(in oklch, var(--bg) 80%, transparent);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav-inner{ display:flex; align-items:center; gap:24px; height:64px; }
+  .brand{ display:inline-flex; align-items:center; gap:9px; font-weight:680; font-size:18px; letter-spacing:-.02em; }
+  .brand .dot{
+    width:10px; height:10px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 4px color-mix(in oklch, var(--accent) 20%, transparent);
+  }
+  .nav-links{ display:flex; gap:26px; margin-left:auto; align-items:center; }
+  .nav-links a{ color:var(--muted); font-size:15px; transition:color .15s ease; }
+  .nav-links a:hover{ color:var(--text); }
+  .nav-cta{
+    color:var(--text) !important; border:1px solid var(--line); padding:8px 15px; border-radius:10px;
+    font-weight:600; font-size:14.5px;
+  }
+  .nav-cta:hover{ border-color:var(--surface-3); background:var(--surface); }
+  @media (max-width:720px){ .nav-links .hide-sm{ display:none; } }
+
+  /* =========================================================
+     HERO  (Option B — editorial)
+     ========================================================= */
+  .hero{ position:relative; overflow:hidden; padding:clamp(40px,6vw,86px) 0 clamp(48px,6vw,92px); }
+  .hero::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(38% 52% at 80% 36%, color-mix(in oklch, var(--accent) 24%, transparent), transparent 70%),
+      radial-gradient(46% 56% at 8% 100%, color-mix(in oklch, var(--accent-2) 15%, transparent), transparent 72%);
+  }
+  .hero-inner{ position:relative; display:grid; grid-template-columns:1.1fr .9fr; gap:clamp(32px,5vw,72px); align-items:center; }
+  .hero h1{
+    margin:0; font-weight:700; letter-spacing:-.045em; line-height:.9;
+    font-size:clamp(46px,7.6vw,98px);
+  }
+  .hero h1 .l2{ color:var(--accent-hi); }
+  .hero h1 .l3{ color:var(--muted); }
+  .hero .stack{ display:flex; flex-direction:column; gap:28px; }
+  .hero .copy{ display:flex; flex-direction:column; gap:26px; max-width:34ch; }
+  .hero .cta-row{ display:flex; flex-wrap:wrap; gap:14px; align-items:center; }
+  .hero .phone-wrap{ display:flex; justify-content:center; perspective:1700px; }
+  .hero .phone{ transform:rotateY(-12deg) rotateX(2.5deg) rotateZ(1deg); }
+
+  /* =========================================================
+     PHONE
+     ========================================================= */
+  .phone{
+    width:332px; max-width:100%;
+    background:
+      linear-gradient(150deg, oklch(0.46 0.012 318), oklch(0.27 0.012 318) 42%, oklch(0.24 0.012 318) 70%, oklch(0.34 0.013 318));
+    border-radius:56px; padding:4px;
+    box-shadow:
+      0 0 0 1.5px oklch(0.20 0.012 318),
+      0 1px 1px oklch(0.62 0.02 318) inset,
+      0 44px 90px -34px oklch(0.08 0.02 318 / .92),
+      0 10px 30px -14px oklch(0.08 0.02 318 / .7);
+  }
+  .screen{
+    background:var(--bg-deep);
+    border-radius:52px; overflow:hidden;
+    display:flex; flex-direction:column;
+    height:680px; position:relative;
+    box-shadow:0 0 0 3px oklch(0.16 0.012 318);
+  }
+  .island{
+    position:absolute; top:11px; left:50%; transform:translateX(-50%);
+    width:106px; height:31px; background:#000; border-radius:18px; z-index:6;
+  }
+  .island::after{
+    content:""; position:absolute; right:13px; top:50%; transform:translateY(-50%);
+    width:9px; height:9px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, oklch(0.34 0.04 270), oklch(0.16 0.03 270));
+    box-shadow:0 0 0 1px oklch(0.30 0.03 270) inset;
+  }
+  .statusbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 26px 7px;
+    font-family:var(--sans); font-size:14.5px; font-weight:600; color:var(--text);
+  }
+  .statusbar .time{ font-variant-numeric:tabular-nums; letter-spacing:.01em; }
+  .statusbar .sysicons{ display:flex; gap:6px; align-items:center; }
+  .statusbar .bars{ display:flex; gap:2px; align-items:flex-end; height:11px; }
+  .statusbar .bars i{ width:3px; background:var(--text); border-radius:1px; }
+  .statusbar .bars i:nth-child(1){ height:5px } .statusbar .bars i:nth-child(2){ height:7px }
+  .statusbar .bars i:nth-child(3){ height:9px } .statusbar .bars i:nth-child(4){ height:11px }
+  .statusbar .net{ font-size:11.5px; font-weight:600; letter-spacing:.01em; }
+  .statusbar .batt{ width:24px; height:12px; border:1.5px solid color-mix(in oklch, var(--text) 55%, transparent); border-radius:3.5px; position:relative; }
+  .statusbar .batt::after{ content:""; position:absolute; inset:1.5px; right:8px; background:var(--text); border-radius:1px; }
+  .statusbar .batt::before{ content:""; position:absolute; right:-3.5px; top:3px; width:2px; height:6px; background:color-mix(in oklch, var(--text) 55%, transparent); border-radius:0 2px 2px 0; }
+
+  .chathead{
+    display:grid; grid-template-columns:34px 1fr 34px; align-items:center;
+    padding:4px 14px 11px; border-bottom:1px solid var(--line-soft);
+  }
+  .chathead .back{
+    width:10px; height:10px; border-left:2px solid var(--accent-hi); border-bottom:2px solid var(--accent-hi);
+    transform:rotate(45deg); border-radius:1px; margin-left:8px;
+  }
+  .chathead .who{ display:flex; flex-direction:column; align-items:center; gap:3px; line-height:1.05; }
+  .avatar{
+    width:30px; height:30px; border-radius:50%; flex:none;
+    display:grid; place-items:center; font-weight:650; font-size:14px; color:var(--bg-deep);
+    background:linear-gradient(150deg, var(--accent-hi), var(--accent-2));
+  }
+  .chathead .who b{ font-size:12.5px; font-weight:600; letter-spacing:-.01em; }
+  .chathead .who small{ font-family:var(--mono); font-size:9.5px; color:var(--accent-hi); letter-spacing:.02em; }
+  .chathead .info{
+    width:18px; height:18px; border-radius:50%; border:1.5px solid var(--faint);
+    justify-self:end; margin-right:8px; position:relative;
+  }
+  .chathead .info::after{ content:"i"; position:absolute; inset:0; display:grid; place-items:center; font-family:Georgia, serif; font-style:italic; font-size:11px; color:var(--faint); }
+
+  .thread{
+    flex:1; overflow:hidden;
+    padding:14px 15px 6px;
+    display:flex; flex-direction:column; gap:6px;
+    scroll-behavior:smooth;
+  }
+  .daystamp{
+    align-self:center; font-family:var(--mono); font-size:10.5px; color:var(--faint);
+    letter-spacing:.04em; margin:2px 0 9px; text-transform:uppercase;
+  }
+  .daystamp b{ color:var(--accent-hi); font-weight:600; }
+  .msg{
+    max-width:80%; padding:9px 13px; border-radius:19px; font-size:14.5px; line-height:1.38;
+    position:relative; word-wrap:break-word;
+  }
+  .msg.luna{
+    align-self:flex-start; background:var(--surface-2); color:var(--text);
+    border-bottom-left-radius:7px;
+  }
+  .msg.you{
+    align-self:flex-end; color:#fff;
+    background:linear-gradient(160deg, var(--bubble-you-1), var(--bubble-you-2));
+    border-bottom-right-radius:7px;
+  }
+  .msg .tapback{
+    position:absolute; top:-13px; left:-11px;
+    width:27px; height:27px; border-radius:50%;
+    background:var(--surface-3); border:2px solid var(--bg-deep);
+    display:grid; place-items:center; font-size:12px;
+    box-shadow:0 2px 6px oklch(0.1 0.02 318 / .6);
+  }
+  .typing{
+    align-self:flex-start; background:var(--surface-2);
+    border-radius:19px; border-bottom-left-radius:7px;
+    padding:12px 15px; gap:5px; align-items:center; margin-top:1px;
+  }
+  .typing i{ width:7px; height:7px; border-radius:50%; background:var(--faint); animation:blink 1.3s infinite ease-in-out; }
+  .typing i:nth-child(2){ animation-delay:.18s } .typing i:nth-child(3){ animation-delay:.36s }
+  @keyframes blink{ 0%,60%,100%{ opacity:.32; transform:translateY(0) } 30%{ opacity:1; transform:translateY(-2px) } }
+
+  .composer{ display:flex; align-items:flex-end; gap:9px; padding:8px 13px 22px; }
+  .composer .plus{
+    width:30px; height:30px; border-radius:50%; background:var(--surface-2); color:var(--muted);
+    display:grid; place-items:center; font-size:19px; line-height:1; flex:none;
+  }
+  .composer .field{
+    flex:1; min-width:0; min-height:34px; background:transparent; border:1.5px solid var(--line); border-radius:18px;
+    padding:6px 6px 6px 14px; font-size:13.5px; line-height:1.32; position:relative;
+    display:flex; align-items:flex-end; gap:6px;
+  }
+  .composer .ftext-wrap{ flex:1; min-width:0; padding:1px 0 1px; }
+  .composer .ftext{ display:block; color:var(--text); white-space:pre-wrap; overflow-wrap:break-word; }
+  .composer .ftext:empty::before{ content:attr(data-ph); color:var(--faint); }
+  .composer .send{
+    flex:none;
+    width:25px; height:25px; border-radius:50%; background:var(--surface-3); color:var(--faint);
+    display:grid; place-items:center; font-size:14px; line-height:1;
+  }
+  .composer .field.active .send{ background:var(--accent); color:var(--bg-deep); }
+  .home-bar{
+    position:absolute; left:50%; bottom:8px; transform:translateX(-50%);
+    width:128px; height:5px; border-radius:3px; background:var(--text); opacity:.34;
+  }
+
+  /* JS-on: messages start removed from flow; JS reveals them */
+  .js .anim{ display:none; }
+  .js .typing{ display:none; }
+  .js .typing.show{ display:inline-flex; }
+  @media (prefers-reduced-motion:reduce){ .thread{ scroll-behavior:auto; } }
+
+  /* =========================================================
+     PILLARS
+     ========================================================= */
+  .pillars{ padding:clamp(56px,8vw,112px) 0 clamp(20px,4vw,40px); }
+  .pillars-head{ max-width:none; margin:0 auto clamp(48px,6vw,84px); text-align:center; }
+  .pillars-head .section-title{ line-height:1.12; margin-top:22px; }
+  .pillars-head .eyebrow{ display:inline-block; white-space:nowrap; }
+  .pillar{
+    display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,5vw,64px); align-items:center;
+    padding:clamp(36px,5vw,60px) 0; border-top:1px solid var(--line-soft);
+  }
+  .pillar:nth-child(even) .p-visual{ order:-1; }
+  .p-text{ display:flex; flex-direction:column; gap:16px; }
+  .p-num{
+    font-family:var(--mono); font-size:14px; color:var(--accent-hi); letter-spacing:.08em;
+  }
+  .p-title{ font-size:clamp(28px,3.6vw,42px); line-height:1.04; letter-spacing:-.03em; font-weight:680; margin:0; }
+  .p-body{ color:var(--muted); font-size:18px; max-width:44ch; }
+  .p-body b{ color:var(--text); font-weight:600; }
+  .p-note{ font-family:var(--mono); font-size:13px; color:var(--faint); }
+  .p-visual{ display:flex; justify-content:center; }
+
+  /* visual: iOS lock screen (in the phone frame) */
+  .lockscreen{
+    background:
+      radial-gradient(120% 70% at 50% -8%, oklch(0.34 0.07 300), transparent 58%),
+      radial-gradient(90% 60% at 80% 110%, oklch(0.30 0.06 268 / .7), transparent 60%),
+      linear-gradient(180deg, oklch(0.20 0.03 300), oklch(0.135 0.02 300));
+    justify-content:flex-start;
+  }
+  .ls-status{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 26px 0; font-size:14.5px; font-weight:600; color:var(--text);
+  }
+  .ls-status .sysicons{ display:flex; gap:6px; align-items:center; }
+  .ls-status .bars{ display:flex; gap:2px; align-items:flex-end; height:11px; }
+  .ls-status .bars i{ width:3px; background:var(--text); border-radius:1px; }
+  .ls-status .bars i:nth-child(1){ height:5px } .ls-status .bars i:nth-child(2){ height:7px }
+  .ls-status .bars i:nth-child(3){ height:9px } .ls-status .bars i:nth-child(4){ height:11px }
+  .ls-status .net{ font-size:11.5px; font-weight:600; }
+  .ls-status .batt{ width:24px; height:12px; border:1.5px solid color-mix(in oklch, var(--text) 55%, transparent); border-radius:3.5px; position:relative; }
+  .ls-status .batt::after{ content:""; position:absolute; inset:1.5px; right:8px; background:var(--text); border-radius:1px; }
+  .ls-status .batt::before{ content:""; position:absolute; right:-3.5px; top:3px; width:2px; height:6px; background:color-mix(in oklch, var(--text) 55%, transparent); border-radius:0 2px 2px 0; }
+
+  .ls-top{ text-align:center; margin-top:30px; }
+  .ls-lock{
+    width:26px; height:24px; margin:0 auto 16px; position:relative; opacity:.92;
+  }
+  .ls-lock::before{
+    content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:13px; height:11px; border:2.5px solid var(--text); border-bottom:0; border-radius:7px 7px 0 0;
+  }
+  .ls-lock::after{
+    content:""; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:20px; height:15px; background:var(--text); border-radius:4px;
+  }
+  .ls-date{ font-size:16px; color:var(--text); opacity:.9; font-weight:500; margin-bottom:0; }
+  .ls-time{ font-size:80px; font-weight:300; letter-spacing:-.02em; line-height:1; color:var(--text); }
+  .ls-notifs{ margin-top:auto; padding:0 12px 18px; display:flex; flex-direction:column; gap:9px; }
+  .ls-actions{ display:flex; justify-content:space-between; padding:0 36px 14px; }
+  .ls-btn{
+    width:46px; height:46px; border-radius:50%; position:relative;
+    background:oklch(0.30 0.02 300 / .55); backdrop-filter:blur(6px);
+    border:1px solid oklch(0.5 0.02 300 / .25);
+  }
+  .ls-btn i{ position:absolute; inset:0; margin:auto; }
+  /* flashlight: lamp head (trapezoid, wider at top) + handle */
+  .ls-btn.flash i{ width:8px; height:15px; }
+  .ls-btn.flash i::before{
+    content:""; position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:6px; height:0; border-top:5px solid var(--text);
+    border-left:2.5px solid transparent; border-right:2.5px solid transparent;
+  }
+  .ls-btn.flash i::after{
+    content:""; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:8px; height:9px; background:var(--text); border-radius:2px;
+  }
+  /* camera: body + lens + viewfinder bump */
+  .ls-btn.cam i{ width:19px; height:14px; background:var(--text); border-radius:3px; }
+  .ls-btn.cam i::before{
+    content:""; position:absolute; top:-3px; left:4px; width:6px; height:3px;
+    background:var(--text); border-radius:2px 2px 0 0;
+  }
+  .ls-btn.cam i::after{
+    content:""; position:absolute; inset:0; margin:auto; width:7px; height:7px;
+    border-radius:50%; background:oklch(0.26 0.02 300);
+  }
+  .push{
+    display:flex; gap:12px; align-items:flex-start;
+    background:color-mix(in oklch, var(--bg-deep) 55%, transparent);
+    border:1px solid var(--line-soft); border-radius:16px; padding:13px 14px;
+    backdrop-filter:blur(8px);
+  }
+  .push .pic{
+    width:36px; height:36px; border-radius:9px; flex:none;
+    display:grid; place-items:center; font-weight:650; color:var(--bg-deep); font-size:16px;
+    background:linear-gradient(150deg, var(--accent-hi), var(--accent-2));
+  }
+  .push .pbody{ flex:1; min-width:0; }
+  .push .ptop{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:2px; }
+  .push .ptop b{ font-size:14px; font-weight:600; }
+  .push .ptop span{ font-family:var(--mono); font-size:11px; color:var(--faint); }
+  .push .pmsg{ font-size:13.5px; color:var(--muted); line-height:1.4; }
+  .push + .push{ margin-top:9px; }
+
+  /* visual: markdown memory file */
+  .filecard{
+    width:100%; max-width:420px; border-radius:16px; overflow:hidden;
+    background:var(--bg-deep); border:1px solid var(--line-soft);
+    box-shadow:0 30px 60px -36px oklch(0.08 0.02 318 / .8);
+    font-family:var(--mono); font-size:13px; line-height:1.7;
+  }
+  .filecard .fc-bar{
+    display:flex; align-items:center; gap:8px; padding:11px 15px;
+    border-bottom:1px solid var(--line-soft); background:var(--surface);
+  }
+  .filecard .fc-dots{ display:flex; gap:6px; }
+  .filecard .fc-dots i{ width:11px; height:11px; border-radius:50%; background:var(--surface-3); }
+  .filecard .fc-name{ margin-left:6px; color:var(--muted); font-size:12.5px; }
+  .filecard .fc-tag{ margin-left:auto; color:var(--faint); font-size:11px; }
+  .filecard .fc-body{ padding:16px 18px 20px; color:var(--muted); white-space:pre-wrap; }
+  .filecard .h{ color:var(--accent-hi); }
+  .filecard .li{ color:var(--text); }
+  .filecard .dim{ color:var(--faint); }
+
+  /* visual: privacy checklist */
+  .checkcard{
+    width:100%; max-width:430px; border-radius:18px; overflow:hidden;
+    background:var(--surface); border:1px solid var(--line-soft);
+    box-shadow:0 30px 60px -36px oklch(0.08 0.02 318 / .8);
+  }
+  .checkcard .cc-head{
+    display:flex; align-items:center; gap:12px; padding:18px 22px;
+    border-bottom:1px solid var(--line-soft);
+    background:radial-gradient(120% 130% at 0% 0%, color-mix(in oklch, var(--accent-2) 14%, transparent), transparent 60%);
+  }
+  .checkcard .cc-head .shield{
+    width:34px; height:34px; border-radius:10px; flex:none; position:relative;
+    background:color-mix(in oklch, var(--accent-2) 22%, var(--surface-2));
+  }
+  .checkcard .cc-head .shield::before{
+    content:""; position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    width:11px; height:9px; border:2.5px solid var(--accent-2); border-bottom:0; border-radius:6px 6px 0 0;
+  }
+  .checkcard .cc-head .shield::after{
+    content:""; position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+    width:16px; height:12px; background:var(--accent-2); border-radius:3px;
+  }
+  .checkcard .cc-head b{ font-size:16.5px; font-weight:650; letter-spacing:-.01em; }
+  .checkcard .cc-head small{ display:block; font-size:12.5px; color:var(--faint); font-weight:400; margin-top:1px; }
+  .checkcard .cc-list{ padding:6px 22px 12px; }
+  .check-row{
+    display:flex; gap:13px; align-items:flex-start; padding:14px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .check-row:last-child{ border-bottom:0; }
+  .check-row .tick{
+    width:24px; height:24px; border-radius:50%; flex:none; margin-top:1px;
+    background:oklch(0.70 0.15 150); display:grid; place-items:center;
+  }
+  .check-row .tick i{
+    width:6px; height:11px; border:solid var(--bg-deep); border-width:0 2.5px 2.5px 0;
+    transform:rotate(43deg); margin-top:-2px; border-radius:1px;
+  }
+  .check-row .ct b{ display:block; font-size:15.5px; font-weight:600; letter-spacing:-.01em; }
+  .check-row .ct span{ font-size:13.5px; color:var(--muted); line-height:1.45; }
+
+  /* =========================================================
+     HOW IT WORKS
+     ========================================================= */
+  .how{ padding:clamp(56px,8vw,108px) 0; }
+  .how-head{ text-align:center; max-width:34ch; margin:0 auto clamp(40px,5vw,64px); }
+  .how-head .section-title{ margin-top:14px; }
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(18px,2.4vw,28px); counter-reset:step; }
+  .step{
+    position:relative; background:var(--surface); border:1px solid var(--line-soft);
+    border-radius:18px; padding:30px 26px 28px; display:flex; flex-direction:column; gap:12px;
+  }
+  .step .sn{
+    font-family:var(--mono); font-size:13px; color:var(--accent-hi); letter-spacing:.06em;
+    display:flex; align-items:center; gap:10px;
+  }
+  .step .sn::before{
+    counter-increment:step; content:counter(step,decimal-leading-zero);
+    background:color-mix(in oklch, var(--accent) 18%, transparent); color:var(--accent-hi);
+    width:30px; height:30px; border-radius:9px; display:grid; place-items:center; font-weight:650;
+  }
+  .step h3{ margin:4px 0 0; font-size:21px; letter-spacing:-.02em; font-weight:650; }
+  .step p{ margin:0; color:var(--muted); font-size:15.5px; line-height:1.55; }
+  .step p b{ color:var(--text); font-weight:600; }
+  .step .arrow{
+    position:absolute; right:-19px; top:50%; transform:translateY(-50%); z-index:2;
+    color:var(--faint); font-size:20px;
+  }
+  .step:last-child .arrow{ display:none; }
+  @media (max-width:760px){
+    .steps{ grid-template-columns:1fr; }
+    .step .arrow{ right:50%; top:auto; bottom:-22px; transform:translateX(50%) rotate(90deg); }
+  }
+
+  /* =========================================================
+     PACKS TEASER
+     ========================================================= */
+  .packs{ padding:clamp(40px,6vw,80px) 0 clamp(56px,8vw,104px); }
+  .packs-head{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap;
+    margin-bottom:clamp(28px,4vw,44px);
+  }
+  .packs-head .copy{ max-width:40ch; }
+  .packs-head .lede{ font-size:17px; margin-top:14px; }
+  .seeall{ color:var(--accent-hi); font-weight:600; font-size:15px; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; }
+  .seeall:hover{ gap:11px; }
+  .pack-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2vw,22px); }
+  .pack{
+    display:flex; flex-direction:column; gap:0;
+    background:var(--surface); border:1px solid var(--line-soft); border-radius:18px; overflow:hidden;
+    transition:border-color .18s ease, transform .18s ease;
+  }
+  .pack:hover{ border-color:var(--surface-3); transform:translateY(-3px); }
+  .pack-top{
+    padding:20px 20px 16px; position:relative;
+    background:
+      radial-gradient(120% 100% at 80% 0%, color-mix(in oklch, var(--accent) 16%, transparent), transparent 64%);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .pack.free .pack-top{
+    background:
+      radial-gradient(120% 100% at 80% 0%, color-mix(in oklch, var(--accent-2) 20%, transparent), transparent 64%);
+  }
+  .pack-tag{
+    font-family:var(--mono); font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+    padding:4px 10px; border-radius:999px; display:inline-block; white-space:nowrap;
+    background:var(--surface-3); color:var(--muted);
+  }
+  .pack.free .pack-tag{ background:var(--accent-2); color:var(--bg-deep); font-weight:650; }
+  .pack-name{ font-size:23px; letter-spacing:-.02em; font-weight:680; margin:14px 0 4px; }
+  .pack-premise{ color:var(--muted); font-size:14.5px; line-height:1.5; min-height:44px; }
+  .pack-cast{ display:flex; flex-wrap:wrap; gap:7px; padding:16px 20px; }
+  .cast-pill{
+    display:inline-flex; align-items:center; gap:7px; padding:5px 11px 5px 5px;
+    background:var(--bg-deep); border:1px solid var(--line-soft); border-radius:999px; font-size:12.5px;
+  }
+  .cast-pill .pf{
+    width:22px; height:22px; border-radius:50%; flex:none; display:grid; place-items:center;
+    font-family:var(--mono); font-size:11px; font-weight:650; color:var(--bg-deep);
+    background:linear-gradient(150deg, var(--accent-hi), var(--accent-2));
+  }
+  .cast-pill b{ font-weight:600; }
+  .cast-pill small{ color:var(--faint); }
+  .pack-foot{ margin-top:auto; padding:14px 20px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .pack-price{ font-weight:680; font-size:18px; }
+  .pack-price.free{ color:var(--accent-2); }
+  .pack-foot .go{
+    font-size:14px; font-weight:600; color:var(--accent-hi);
+    border:1px solid var(--line); padding:8px 14px; border-radius:10px; transition:background .15s ease, border-color .15s ease;
+  }
+  .pack-foot .go:hover{ background:var(--surface-2); border-color:var(--surface-3); }
+  @media (max-width:820px){ .pack-grid{ grid-template-columns:1fr; } }
+
+  /* =========================================================
+     DOWNLOAD
+     ========================================================= */
+  .download{ position:relative; padding:clamp(56px,8vw,104px) 0; overflow:hidden; border-top:1px solid var(--line-soft); }
+  .download::before{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(50% 70% at 50% 0%, color-mix(in oklch, var(--accent) 14%, transparent), transparent 70%);
+  }
+  .dl-head{ position:relative; text-align:center; max-width:30ch; margin:0 auto clamp(36px,5vw,52px); }
+  .dl-grid{ position:relative; display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:clamp(16px,2vw,22px); align-items:stretch; }
+  .dl-card{
+    background:var(--surface); border:1px solid var(--line-soft); border-radius:20px;
+    padding:28px 26px; display:flex; flex-direction:column; gap:10px;
+  }
+  .dl-card.primary{ border-color:color-mix(in oklch, var(--accent) 45%, var(--line-soft)); background:color-mix(in oklch, var(--accent) 7%, var(--surface)); }
+  .dl-card .plat{ font-family:var(--mono); font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+  .dl-card h3{ margin:2px 0 0; font-size:24px; letter-spacing:-.02em; font-weight:680; }
+  .dl-card p{ margin:0; color:var(--muted); font-size:15px; line-height:1.5; }
+  .dl-card .spacer{ flex:1; }
+  .dl-card .btn{ width:100%; justify-content:center; margin-top:6px; }
+  .dl-card a.textlink{ color:var(--accent-hi); font-weight:600; font-size:15px; margin-top:6px; display:inline-flex; gap:8px; align-items:center; }
+  .dl-card a.textlink:hover{ gap:11px; }
+  .dl-card .req{ font-family:var(--mono); font-size:12px; color:var(--faint); margin-top:8px; }
+  @media (max-width:820px){ .dl-grid{ grid-template-columns:1fr; } }
+
+  /* =========================================================
+     FOOTER
+     ========================================================= */
+  footer{ border-top:1px solid var(--line-soft); padding:clamp(44px,6vw,72px) 0 56px; background:var(--bg-deep); }
+  .foot-top{ display:flex; justify-content:space-between; gap:36px; flex-wrap:wrap; margin-bottom:40px; }
+  .foot-brand{ max-width:34ch; }
+  .foot-brand .brand{ font-size:20px; margin-bottom:12px; }
+  .foot-brand p{ color:var(--muted); font-size:15px; margin:0; }
+  .foot-cols{ display:flex; gap:clamp(36px,6vw,72px); flex-wrap:wrap; }
+  .foot-col h4{ font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); margin:0 0 14px; font-weight:600; }
+  .foot-col a{ display:block; color:var(--muted); font-size:15px; margin-bottom:10px; transition:color .15s ease; }
+  .foot-col a:hover{ color:var(--text); }
+  .foot-bottom{
+    display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:center;
+    padding-top:26px; border-top:1px solid var(--line-soft);
+    font-family:var(--mono); font-size:12.5px; color:var(--faint);
+  }
+  .foot-bottom .no-track{ color:var(--accent-hi); }
+  .foot-bottom a{ color:var(--muted); }
+  .foot-bottom a:hover{ color:var(--text); }
+
+  @media (max-width:900px){
+    .hero-inner{ grid-template-columns:1fr; gap:48px; }
+    .hero .phone{ transform:none; }
+    .hero .phone-wrap{ perspective:none; order:2; }
+    .pillar{ grid-template-columns:1fr; gap:28px; }
+    .pillar:nth-child(even) .p-visual{ order:0; }
+    .p-visual{ justify-content:flex-start; }
+  }
 </style>
 </head>
-<body>
-<main>
-  <div class="bubble">hey. the site is almost ready — we're still unpacking 📦</div>
-  <h1>Text<span>lings</span></h1>
-  <p>Characters who text you first, remember your week, and live entirely
-  on your own computer. No cloud, no accounts, no one reading along.
-  Free &amp; open source.</p>
-  <a class="btn" href="https://github.com/CZ140/textlings">GitHub</a>
-  <a class="btn ghost" href="https://github.com/CZ140/textlings/releases">Downloads</a>
-  <footer>AGPL-3.0 · no trackers on this site, ever ·
-    <a href="https://github.com/sponsors/CZ140">support development ♥</a>
-  </footer>
+<body class="no-js">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="/" aria-label="Textlings home"><span class="dot"></span>textlings</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a class="hide-sm" href="#how">how it works</a>
+      <a class="hide-sm" href="packs/">packs</a>
+      <a href="https://github.com/CZ140/textlings">source</a>
+      <a class="nav-cta" href="#download">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================ HERO ============================ -->
+  <section class="hero" aria-labelledby="hero-h">
+    <div class="wrap hero-inner">
+      <div class="stack">
+        <h1 id="hero-h">the contacts<br><span class="l2">who text</span><br><span class="l3">you first.</span></h1>
+        <div class="copy">
+          <p class="lede">Every contact is a character — with their own hours, moods, and memory, running on your own machine. <b>They start the conversation. They remember last month.</b></p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#download">
+              <span class="win"><svg viewBox="0 0 17 17" aria-hidden="true"><rect x="0" y="0" width="7.4" height="7.4" rx="0.6"/><rect x="9.6" y="0" width="7.4" height="7.4" rx="0.6"/><rect x="0" y="9.6" width="7.4" height="7.4" rx="0.6"/><rect x="9.6" y="9.6" width="7.4" height="7.4" rx="0.6"/></svg></span> Download for Windows
+            </a>
+            <a class="btn btn-ghost" href="#download">Raspberry Pi &amp; source</a>
+          </div>
+          <p class="meta-line">free &amp; open source · <b>runs locally</b> · no cloud, no account, no telemetry</p>
+        </div>
+      </div>
+      <div class="phone-wrap">
+        <div class="phone"><div class="screen"><div class="island"></div>
+          <div class="statusbar">
+            <span class="time">12:58</span>
+            <span class="sysicons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="net">5G</span><span class="batt"></span></span>
+          </div>
+          <div class="chathead">
+            <span class="back"></span>
+            <span class="who"><span class="avatar">l</span><b>luna</b><small>active now</small></span>
+            <span class="info"></span>
+          </div>
+          <div class="thread" data-thread>
+            <div class="daystamp anim">today <b>12:58 AM</b></div>
+            <div class="msg luna anim">the iss is passing over right now. like, actually right now</div>
+            <div class="msg luna anim">northwest, pretty low. you've got maybe ninety seconds before it's gone</div>
+            <div class="msg luna anim">wait — did your sister's interview ever happen?? i keep thinking about it</div>
+            <div class="msg you anim">just looked, caught it!! 🛰️ and yeah, she got the job 🎉</div>
+            <div class="msg luna anim" data-tapback="❤️">knew she would. obviously</div>
+            <div class="typing" aria-label="luna is typing"><i></i><i></i><i></i></div>
+          </div>
+          <div class="composer"><span class="plus">+</span><div class="field"><span class="ftext-wrap"><span class="ftext" data-ph="text luna…"></span></span><span class="send">↑</span></div><div class="home-bar"></div></div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ PILLARS ============================ -->
+  <section class="pillars" aria-labelledby="pillars-h">
+    <div class="wrap">
+      <div class="pillars-head">
+        <span class="eyebrow">why they feel alive</span>
+        <h2 class="section-title" id="pillars-h">Not a chatbot you open.<br><span class="dim">They're people who text you.</span></h2>
+      </div>
+
+      <!-- pillar 1 -->
+      <div class="pillar">
+        <div class="p-text">
+          <span class="p-num">01 — initiative</span>
+          <h3 class="p-title">They text first.</h3>
+          <p class="p-body">Characters have their own <b>awake hours</b>. A night owl messages you at 1am because that's who she is. The clingy ones double-text. The quiet ones go quiet for days. The app sends <b>real push notifications</b> — so they reach you whether the app is open or not.</p>
+          <p class="p-note">// each character has a schedule, a mood, and a reason to reach out</p>
+        </div>
+        <div class="p-visual">
+          <div class="phone" role="img" aria-label="An iPhone lock screen at 1:04 AM showing two push notifications from Luna — one about the ISS passing over, and a double-text saying 'you up?'">
+            <div class="screen lockscreen">
+              <div class="island"></div>
+              <div class="ls-status">
+                <span class="net">5G</span>
+                <span class="sysicons"><span class="bars"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span>
+              </div>
+              <div class="ls-top">
+                <div class="ls-lock"></div>
+                <div class="ls-date">Thursday, June 12</div>
+                <div class="ls-time">1:04</div>
+              </div>
+              <div class="ls-notifs">
+                <div class="push">
+                  <div class="pic">l</div>
+                  <div class="pbody">
+                    <div class="ptop"><b>luna</b><span>now</span></div>
+                    <div class="pmsg">the iss is passing over right now. like, actually right now</div>
+                  </div>
+                </div>
+                <div class="push">
+                  <div class="pic">l</div>
+                  <div class="pbody">
+                    <div class="ptop"><b>luna</b><span>now</span></div>
+                    <div class="pmsg">you up?? you'd want to see this</div>
+                  </div>
+                </div>
+              </div>
+              <div class="ls-actions">
+                <span class="ls-btn flash" aria-hidden="true"><i></i></span>
+                <span class="ls-btn cam" aria-hidden="true"><i></i></span>
+              </div>
+              <div class="home-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- pillar 2 -->
+      <div class="pillar">
+        <div class="p-text">
+          <span class="p-num">02 — memory</span>
+          <h3 class="p-title">They remember.</h3>
+          <p class="p-body">Every conversation builds into a <b>plain-markdown memory file</b> you can open and edit in any text editor. Characters bring up things you told them last month. In group chats, they <b>share history with each other</b> — so they can gossip about that thing you said.</p>
+          <p class="p-note">// memory/luna.md — yours to read, edit, or delete</p>
+        </div>
+        <div class="p-visual">
+          <div class="filecard" role="img" aria-label="A markdown file named luna.md showing what Luna knows: her traits, and notes about you including your sister's interview.">
+            <div class="fc-bar">
+              <span class="fc-dots"><i></i><i></i><i></i></span>
+              <span class="fc-name">memory / luna.md</span>
+              <span class="fc-tag">markdown</span>
+            </div>
+            <div class="fc-body"><span class="h"># luna</span>
+<span class="dim">last seen — 3 days ago, 1:11 AM</span>
+
+<span class="h">## who she is</span>
+<span class="li">- night owl. most alive 11pm–3am</span>
+<span class="li">- astronomy nerd; tracks ISS passes</span>
+<span class="li">- texts in lowercase, always</span>
+
+<span class="h">## what she knows about you</span>
+<span class="li">- your sister had a big interview</span>
+<span class="dim">  ↳ update: she got the job 🎉</span>
+<span class="li">- you can see the sky from your place</span>
+<span class="li">- you reply faster after midnight</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- pillar 3 -->
+      <div class="pillar">
+        <div class="p-text">
+          <span class="p-num">03 — privacy</span>
+          <h3 class="p-title">It's actually private.</h3>
+          <p class="p-body">Everything runs on your computer against a <b>local AI model</b> (Ollama). No cloud, no account, no sign-up, no telemetry. The app phones home for <b>nothing</b> — and you don't have to take our word for it, because all the code is <b>AGPL and free forever</b>.</p>
+          <p class="p-note">// open the source. read every line. it's all there.</p>
+        </div>
+        <div class="p-visual">
+          <div class="checkcard" role="img" aria-label="A privacy checklist: no cloud, no account, no telemetry, no trackers, and fully open source.">
+            <div class="cc-head">
+              <span class="shield" aria-hidden="true"></span>
+              <span><b>Private by default</b><small>here's everything that leaves your computer</small></span>
+            </div>
+            <div class="cc-list">
+              <div class="check-row">
+                <span class="tick" aria-hidden="true"><i></i></span>
+                <span class="ct"><b>No cloud</b><span>Every reply is generated by a model running on your own machine.</span></span>
+              </div>
+              <div class="check-row">
+                <span class="tick" aria-hidden="true"><i></i></span>
+                <span class="ct"><b>No account</b><span>Nothing to sign up for. No email, no password, no profile.</span></span>
+              </div>
+              <div class="check-row">
+                <span class="tick" aria-hidden="true"><i></i></span>
+                <span class="ct"><b>No telemetry</b><span>The app collects nothing about you and phones home for nothing.</span></span>
+              </div>
+              <div class="check-row">
+                <span class="tick" aria-hidden="true"><i></i></span>
+                <span class="ct"><b>No trackers</b><span>Not in the app — and not on this website either.</span></span>
+              </div>
+              <div class="check-row">
+                <span class="tick" aria-hidden="true"><i></i></span>
+                <span class="ct"><b>Open source</b><span>All AGPL. Don't take our word for it — read every line.</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ HOW IT WORKS ============================ -->
+  <section class="how" id="how" aria-labelledby="how-h">
+    <div class="wrap">
+      <div class="how-head">
+        <span class="eyebrow">how it works</span>
+        <h2 class="section-title" id="how-h">Three steps, then you can close the app.</h2>
+      </div>
+      <ol class="steps" style="list-style:none; padding:0; margin:0;">
+        <li class="step">
+          <span class="sn">install</span>
+          <h3>Download &amp; run it.</h3>
+          <p>One installer. It talks to a <b>local AI model</b> on your machine — one model powers every character. No terminal required; if you can install an app, you're set.</p>
+          <span class="arrow" aria-hidden="true">→</span>
+        </li>
+        <li class="step">
+          <span class="sn">first character</span>
+          <h3>Pick someone to text.</h3>
+          <p>Open the in-app gallery and install <b>The Building</b> for free, or load any pack. Each character is a plain personality file — read it, tweak it, make them yours.</p>
+          <span class="arrow" aria-hidden="true">→</span>
+        </li>
+        <li class="step">
+          <span class="sn">they text you</span>
+          <h3>Go live your life.</h3>
+          <p>Close the window. They keep their own hours. <b>Luna will text you when the ISS goes over</b> — even if that's 1am — and pick up right where you left off.</p>
+          <span class="arrow" aria-hidden="true">→</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================ PACKS ============================ -->
+  <section class="packs" aria-labelledby="packs-h">
+    <div class="wrap">
+      <div class="packs-head">
+        <div class="copy">
+          <span class="eyebrow">character packs</span>
+          <h2 class="section-title" id="packs-h">A cast for every group chat.</h2>
+          <p class="lede">Hand-written characters who know each other. Start with The Building — free, in the app — or browse the store.</p>
+        </div>
+        <a class="seeall" href="packs/">browse all packs →</a>
+      </div>
+
+      <div class="pack-grid">
+        <!-- FREE -->
+        <article class="pack free">
+          <div class="pack-top">
+            <span class="pack-tag">free · in-app</span>
+            <h3 class="pack-name">The Building</h3>
+            <p class="pack-premise">The group chat for 4B &amp; friends. Gloria runs it like she still runs the boiler.</p>
+          </div>
+          <div class="pack-cast">
+            <span class="cast-pill"><span class="pf">G</span><b>gloria</b><small>· the super</small></span>
+            <span class="cast-pill"><span class="pf">S</span><b>sam</b><small>· dog walker</small></span>
+            <span class="cast-pill"><span class="pf">T</span><b>theo</b><small>· night baker</small></span>
+            <span class="cast-pill"><span class="pf">V</span><b>vess</b><small>· foley artist</small></span>
+          </div>
+          <div class="pack-foot">
+            <span class="pack-price free">Free</span>
+            <a class="go" href="packs/the-building/">Open pack →</a>
+          </div>
+        </article>
+
+        <!-- PAID 1 -->
+        <article class="pack">
+          <div class="pack-top">
+            <span class="pack-tag">coming soon</span>
+            <h3 class="pack-name">Old Friends</h3>
+            <p class="pack-premise">A dead hometown group chat comes back to life. Everyone's a little different now.</p>
+          </div>
+          <div class="pack-cast">
+            <span class="cast-pill"><span class="pf">D</span><b>dee</b><small>· overshares</small></span>
+            <span class="cast-pill"><span class="pf">M</span><b>marcus</b><small>· guarded</small></span>
+            <span class="cast-pill"><span class="pf">J</span><b>jules</b><small>· chaos</small></span>
+          </div>
+          <div class="pack-foot">
+            <span class="pack-price">$4.99</span>
+            <a class="go" href="packs/old-friends/">View pack →</a>
+          </div>
+        </article>
+
+        <!-- PAID 2 -->
+        <article class="pack">
+          <div class="pack-top">
+            <span class="pack-tag">coming soon</span>
+            <h3 class="pack-name">The Other Side</h3>
+            <p class="pack-premise">You got isekai'd. Your group chat came with you. Mara still needs your species field.</p>
+          </div>
+          <div class="pack-cast">
+            <span class="cast-pill"><span class="pf">W</span><b>wren</b><small>· scout</small></span>
+            <span class="cast-pill"><span class="pf">M</span><b>mara</b><small>· deadpan</small></span>
+            <span class="cast-pill"><span class="pf">P</span><b>pell</b><small>· ALL CAPS</small></span>
+            <span class="cast-pill"><span class="pf">O</span><b>odra</b><small>· uninvited</small></span>
+          </div>
+          <div class="pack-foot">
+            <span class="pack-price">$4.99</span>
+            <a class="go" href="packs/the-other-side/">View pack →</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ DOWNLOAD ============================ -->
+  <section class="download" id="download" aria-labelledby="dl-h">
+    <div class="wrap">
+      <div class="dl-head">
+        <span class="eyebrow">download</span>
+        <h2 class="section-title" id="dl-h">Get Textlings.</h2>
+      </div>
+      <div class="dl-grid">
+        <div class="dl-card primary">
+          <span class="plat">Windows</span>
+          <h3>The installer.</h3>
+          <p>Download, run, done. The easiest way in — no terminal, no setup beyond a local model.</p>
+          <span class="spacer"></span>
+          <a class="btn btn-primary" href="https://github.com/CZ140/textlings/releases/latest">
+            <span class="win"><svg viewBox="0 0 17 17" aria-hidden="true"><rect x="0" y="0" width="7.4" height="7.4" rx="0.6"/><rect x="9.6" y="0" width="7.4" height="7.4" rx="0.6"/><rect x="0" y="9.6" width="7.4" height="7.4" rx="0.6"/><rect x="9.6" y="9.6" width="7.4" height="7.4" rx="0.6"/></svg></span> Download for Windows
+          </a>
+          <p class="req">.exe · Windows 10/11 · 64-bit</p>
+        </div>
+
+        <div class="dl-card">
+          <span class="plat">Raspberry Pi</span>
+          <h3>The image.</h3>
+          <p>A ready-to-go disk image. Flash it with <b>Raspberry Pi Imager</b>, boot, and you've got a little always-on Textlings box.</p>
+          <span class="spacer"></span>
+          <a class="btn btn-ghost" href="https://github.com/CZ140/textlings/releases/latest">Download Pi image</a>
+          <p class="req">.img.xz · Pi 4 / 5 · 8GB+ recommended</p>
+        </div>
+
+        <div class="dl-card">
+          <span class="plat">Everything else</span>
+          <h3>Run from source.</h3>
+          <p>macOS, Linux, or you just want to read the code first. Clone it, build it, send a PR.</p>
+          <span class="spacer"></span>
+          <a class="textlink" href="https://github.com/CZ140/textlings">View on GitHub →</a>
+          <p class="req">AGPL-3.0 · needs Ollama</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a class="brand" href="/" aria-label="Textlings home"><span class="dot"></span>textlings</a>
+        <p>The contacts who text you first. Open source, local-first, and built by someone who actually likes these characters.</p>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h4>Product</h4>
+          <a href="#how">How it works</a>
+          <a href="packs/">Character packs</a>
+          <a href="#download">Download</a>
+        </div>
+        <div class="foot-col">
+          <h4>Open source</h4>
+          <a href="https://github.com/CZ140/textlings">Source code</a>
+          <a href="https://github.com/CZ140/textlings/releases/latest">Releases</a>
+          <a href="https://github.com/sponsors/CZ140">Support development ♥</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>Licensed <a href="https://github.com/CZ140/textlings">AGPL-3.0</a> · free forever · 18+</span>
+      <span class="no-track">no trackers on this site, ever</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.body.classList.remove('no-js');
+  document.body.classList.add('js');
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var sleep = function(ms){ return new Promise(function(r){ setTimeout(r, ms); }); };
+
+  // Some embedded/preview contexts freeze the animation timeline (currentTime never
+  // advances) while setTimeout keeps running — which would pin every animated element
+  // to its first keyframe. Probe once; only layer motion when the timeline truly runs.
+  var timelineOK = true;
+  function probeTimeline(){
+    return new Promise(function(res){
+      if (!document.body.animate){ timelineOK = false; return res(); }
+      var p = document.createElement('div');
+      p.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';
+      document.body.appendChild(p);
+      var a = p.animate([{ opacity:0 }, { opacity:1 }], { duration:600 });
+      setTimeout(function(){
+        timelineOK = !!(a.currentTime && a.currentTime > 0);
+        try{ a.cancel(); }catch(e){}
+        p.remove();
+        res();
+      }, 180);
+    });
+  }
+
+  function reveal(node){
+    node.style.display = 'block';     // override `.js .anim { display:none }` (empty string would revert to it)
+    node.style.opacity = '1';        // final state, instant — correct even if timeline is frozen
+    node.style.transform = 'none';
+    if (timelineOK && node.animate){
+      node.animate(
+        [{ opacity:0, transform:'translateY(10px) scale(.97)' }, { opacity:1, transform:'none' }],
+        { duration:320, easing:'cubic-bezier(.2,.8,.3,1)' }
+      );
+    }
+  }
+
+  function addTapback(msg){
+    if (msg.querySelector('.tapback')) return;
+    var tb = document.createElement('span');
+    tb.className = 'tapback';
+    tb.textContent = msg.dataset.tapback;
+    msg.appendChild(tb);
+    if (timelineOK && tb.animate){
+      tb.animate(
+        [{ opacity:0, transform:'scale(.4)' }, { opacity:1, transform:'scale(1)' }],
+        { duration:260, easing:'cubic-bezier(.2,1.5,.4,1)' }
+      );
+    }
+  }
+
+  // Type the user's reply into the composer, character by character, then "send".
+  async function typeInto(field, text){
+    var ft = field.querySelector('.ftext');
+    var thread = field.closest('.screen').querySelector('.thread');
+    field.classList.add('active');
+    ft.textContent = '';
+    var chars = Array.from(text); // code-point aware (emoji safe)
+    for (var c = 0; c < chars.length; c++){
+      if (window.__halt) return;
+      ft.textContent += chars[c];
+      if (thread) thread.scrollTop = thread.scrollHeight; // keep thread pinned as composer grows
+      await sleep(chars[c] === ' ' ? 55 : 42 + Math.random() * 55);
+    }
+    await sleep(430);
+  }
+  function clearField(field){
+    field.querySelector('.ftext').textContent = '';
+    field.classList.remove('active');
+  }
+
+  function resetThread(thread, nodes, typing, field){
+    nodes.forEach(function(n){
+      n.style.display = '';            // back to `.js .anim { display:none }`
+      n.style.opacity = '';
+      n.style.transform = '';
+      var tb = n.querySelector('.tapback'); if (tb) tb.remove();
+    });
+    typing.classList.remove('show');
+    if (field) clearField(field);
+    thread.scrollTop = 0;
+  }
+
+  async function playThread(thread){
+    var nodes = Array.prototype.slice.call(thread.querySelectorAll('.anim'));
+    var typing = thread.querySelector('.typing');
+    var screen = thread.closest('.screen');
+    var field = screen ? screen.querySelector('.composer .field') : null;
+    var bottom = function(){ thread.scrollTop = thread.scrollHeight; };
+
+    if (reduce){
+      nodes.forEach(function(n){ reveal(n); if (n.dataset.tapback) addTapback(n); });
+      return;
+    }
+
+    await sleep(300 + Math.random() * 350);
+
+    while (true){
+      if (window.__halt) return;
+      resetThread(thread, nodes, typing, field);
+      await sleep(500);
+
+      for (var i = 0; i < nodes.length; i++){
+        if (window.__halt) return;
+        var node = nodes[i];
+
+        if (node.classList.contains('daystamp')){
+          reveal(node); bottom();
+          await sleep(600);
+          continue;
+        }
+
+        if (node.classList.contains('luna')){
+          typing.classList.add('show'); bottom();
+          await sleep(750 + Math.min(Array.from(node.textContent).length * 11, 950));
+          typing.classList.remove('show');
+          reveal(node); bottom();
+          if (node.dataset.tapback){ await sleep(900); addTapback(node); }
+          await sleep(720);
+        } else {
+          // user reply — type it into the box first, then send
+          await sleep(450);
+          if (field){ await typeInto(field, node.textContent); clearField(field); }
+          if (window.__halt) return;
+          reveal(node); bottom();
+          await sleep(820);
+        }
+      }
+
+      // settle on Luna's typing dots, hold, then rest ~20s before replaying
+      await sleep(520);
+      if (window.__halt) return;
+      typing.classList.add('show'); bottom();
+      await sleep(20000);
+    }
+  }
+
+  var threads = Array.prototype.slice.call(document.querySelectorAll('[data-thread]'));
+  async function startAll(){
+    await probeTimeline();
+    threads.forEach(function(t, idx){ setTimeout(function(){ playThread(t); }, idx * 300); });
+  }
+
+  // Prefer starting when in view, but never depend on it — fall back to an immediate start.
+  var started = false;
+  function kick(){ if (started) return; started = true; startAll(); }
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      var any = entries.some(function(e){ return e.isIntersecting; });
+      if (any){ kick(); io.disconnect(); }
+    }, { threshold:.15 });
+    threads.forEach(function(t){ io.observe(t); });
+  }
+  // Safety net: if IO hasn't fired shortly after load, start anyway.
+  window.addEventListener('load', function(){ setTimeout(kick, 400); });
+  setTimeout(kick, 1200);
+</script>
 </body>
 </html>
